@@ -1,0 +1,43 @@
+version: "3"
+services:
+  sensor:
+    build:
+      context: ./TemperatureSensor
+      dockerfile: Dockerfile
+    volumes:
+      - temperature:/app/temperature
+    environment:
+      - FILE_OUT_PATH=/app/temperature/temperature.txt
+    ports:
+      - "8080:8080"
+    networks:
+      - temperature-level-network
+#      ===========================================
+  monitor:
+    build:
+      context: ./TemperatureMonitor
+      dockerfile: Dockerfile
+    volumes:
+      - temperature:/app/temperature
+      - temperaturelevel:/app/temperaturelevel
+    environment:
+      - FILE_IN_PATH=/app/temperature/temperature.txt
+      - FILE_OUT_PATH=/app/temperaturelevel/temperaturelevel.txt
+      - LOW_TEMPERATURE=6
+      - MEDIUM_TEMPERATURE=20
+      - HIGH_TEMPERATURE=36
+    depends_on:
+      - sensor
+    ports:
+      - "8081:8081"
+    networks:
+      - temperature-level-network
+
+
+volumes:
+  temperature:
+  temperaturelevel:
+
+networks:
+  temperature-level-network:
+    driver: bridge

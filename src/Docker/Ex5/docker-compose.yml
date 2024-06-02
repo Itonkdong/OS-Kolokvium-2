@@ -1,0 +1,42 @@
+version: "3"
+services:
+  frontend:
+    image: nginx:alpine
+    volumes:
+      - frontend-code:/usr/share/nginx/html
+    ports:
+      - "80:80"
+    networks:
+      - frontend-backend-network
+    environment:
+      - NGINX_HOST=localhost1
+      - NGINX_PORT=80801
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - backend-code:/app
+    networks:
+      - frontend-backend-network
+    environment:
+      - API_KEY=your_api_key
+
+volumes:
+  frontend-code:
+  backend-code:
+
+networks:
+  frontend-backend-network:
+    driver: bridge
+
+#    FIRST THE VOLUMES ARE CREATED, THEN THE DOCKERFILES (IMAGES) ARE BUILD (RUN), AND THAT IS WHY THE LINE
+
+#     volumes:
+#      - backend-code:/app
+
+# DOES NOT OVERWRITE WHAT THE DOCKERFILE WILL CREATE: THE COMPILED JAVA CLASS
+
+# docker network inspect ex5_frontend-backend-network, see details information about the network

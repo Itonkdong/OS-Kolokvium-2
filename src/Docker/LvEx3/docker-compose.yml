@@ -1,0 +1,44 @@
+version: "3"
+services:
+  sensor:
+    build:
+      context: ./SoundLevelSensor
+      dockerfile: Dockerfile
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'Everything OKAY'"]
+      interval: 5s
+      retries: 5
+      timeout: 3s
+    volumes:
+      - soundlevel:/app/dataOut
+    networks:
+      - city-noisepollution-network
+    ports:
+      - "8081:81"
+  monitor:
+    build:
+      context: ./SoundLevelMonitor
+      dockerfile: Dockerfile
+    depends_on:
+      - sensor
+    volumes:
+      - soundlevel:/app/dataIn
+      - noisepollution:/app/dataOut
+    environment:
+      - LOW_SOUNDLEVEL=41
+      - MEDIUM_SOUNDLEVEL=61
+      - HIGH_SOUNDLEVEL=81
+    networks:
+      - city-noisepollution-network
+    ports:
+      - "8080:80"
+
+
+
+volumes:
+  soundlevel:
+  noisepollution:
+
+networks:
+  city-noisepollution-network:
+    driver: bridge

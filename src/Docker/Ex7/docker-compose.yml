@@ -1,0 +1,60 @@
+version: "3"
+services:
+  log-server:
+    build:
+      context: ./logServer
+      dockerfile: Dockerfile
+    networks:
+      - log-private-network
+    environment:
+      - PORT=7000
+      - COUNT_FILE_PATH=/app/data/count.txt
+      - LOG_FILE_PATH=/app/data/log.txt
+    deploy:
+      replicas: 1
+    volumes:
+      - ./data:/app/data
+#      =========================
+  tcp-server:
+    build:
+      context: ./tcpServer
+      dockerfile: Dockerfile
+    networks:
+      - log-private-network
+      - tcp-private-network
+    environment:
+      - PORT=8000
+      - LOG_SERVER_PORT=7000
+      - LOG_SERVER_NAME=log-server
+    deploy:
+      replicas: 1
+    depends_on:
+      - log-server
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'OK'"]
+      interval: 5s
+      retries: 5
+      timeout: 10s
+#      =========================
+  tcp-client:
+    build:
+      context: ./tcpClient
+      dockerfile: Dockerfile
+    networks:
+      - tcp-private-network
+    environment:
+      - SERVER_PORT=8000
+      - SERVER_NAME=tcp-server
+    deploy:
+      replicas: 10
+    depends_on:
+      tcp-server:
+        condition: service_healthy
+
+networks:
+  tcp-private-network:
+    driver: bridge
+  log-private-network:
+    driver: bridge
+
+#    The service name MUST BE WITH LOWERCASE CHARACTERS ONLY (CAN INCLUDE - [DASH, MINUS])

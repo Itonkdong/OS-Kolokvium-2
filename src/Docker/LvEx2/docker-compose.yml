@@ -1,0 +1,28 @@
+version: "3"
+services:
+  sensor:
+    build:
+      context: ./SoundLevelSensor
+      dockerfile: Dockerfile
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'Everything OKAY'"]
+      interval: 5s
+      retries: 5
+      timeout: 3s
+    volumes:
+      - dataVolume:/app/data
+  monitor:
+    build:
+      context: ./SoundLevelMonitor
+      dockerfile: Dockerfile
+    depends_on:
+      sensor:
+        condition: service_healthy
+    volumes:
+      - dataVolume:/app/data
+
+
+
+volumes:
+  dataVolume:
+

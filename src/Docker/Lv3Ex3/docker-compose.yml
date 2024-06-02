@@ -1,0 +1,62 @@
+version: "3"
+services:
+  udp-server:
+    build:
+      context: ./udpServer
+      dockerfile: Dockerfile
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'Everything OK'"]
+      timeout: 3s
+      retries: 5
+      interval: 5s
+    networks:
+      - udp-private-network
+    environment:
+      - SERVER_PORT=7000
+#      ================================
+  udp-client:
+    build:
+      context: ./udpClient
+      dockerfile: Dockerfile
+    depends_on:
+      udp-server:
+        condition: service_healthy
+    networks:
+      - udp-private-network
+    environment:
+      - SERVER_PORT=7000
+      - SERVER_NAME=udp-server
+    deploy:
+      replicas: 5
+#        ===============================
+  tcp-server:
+    build:
+      context: ./tcpServer
+      dockerfile: Dockerfile
+    networks:
+      - tcp-private-network
+    environment:
+      - SERVER_PORT=8000
+#      ===================================
+  tcp-client:
+    build:
+      context: ./tcpClient
+      dockerfile: Dockerfile
+    depends_on:
+      - tcp-server
+    networks:
+      - tcp-private-network
+    environment:
+      - SERVER_PORT=8000
+      - SERVER_NAME=tcp-server
+    deploy:
+      replicas: 5
+
+networks:
+  udp-private-network:
+    driver: bridge
+  tcp-private-network:
+    driver: bridge
+
+
+# NOTE: THERE SHOULD NOT BE ANY SPACE BETWEEN THE ENV_VAR NAME AND THE ENV_VAR VALUE

@@ -1,0 +1,24 @@
+version: "3"
+services:
+  sensor:
+    build:
+      context: ./TemperatureSensor
+      dockerfile: Dockerfile
+    volumes:
+      - dataVolume:/app/data
+    environment:
+      - FILE_OUT_PATH=/app/data/temperature.txt
+  monitor:
+    build:
+      context: ./TemperatureMonitor
+      dockerfile: Dockerfile
+    volumes:
+      - dataVolume:/app/data
+    environment:
+      - FILE_IN_PATH=/app/data/temperature.txt
+      - FILE_OUT_PATH=/app/data/temperaturelevel.txt
+    depends_on:
+      - sensor
+
+volumes:
+  dataVolume:
